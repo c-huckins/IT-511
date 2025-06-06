@@ -36,6 +36,8 @@ public class UpdateRecipeView extends JFrame {
     private final JTextField amountField;
     private final JComboBox<MeasurementUnitType> amountComboBox;
     private final JButton cancelUpdateIngredientButton;
+    private final JButton addIngredientButton;
+    private final JButton updateIngredientButton;
     private final JTextField caloriesField;
     private final JComboBox<MeasurementUnitType> caloriesComboBox;
     private final JTextField recipeCaloriesField = new JTextField();
@@ -159,39 +161,21 @@ public class UpdateRecipeView extends JFrame {
         caloriesComboBox.setSelectedIndex(-1);
         add(caloriesComboBox);
         
-        JButton addIngredientButton = new JButton("Add");
+        addIngredientButton = new JButton("Add");
         addIngredientButton.setBounds(375, 330, 150, 30);
         
         addIngredientButton.addActionListener((ActionEvent e) -> {
-            Ingredient ingredient = buildIngredient();
-            if (ingredient != null) {
-                totalRecipeCalories += ingredient.getTotalCalories();
-                recipeCaloriesLabel.setText("Total Calories: " + Math.round(totalRecipeCalories));
-                ingredients.addElement(ingredient);
-                clearIngredientFields();
-            } 
+            handleAddIngredientButton();
         });
         add(addIngredientButton);
         
-        JButton updateIngredientButton = new JButton("Update");
+        updateIngredientButton = new JButton("Update");
         updateIngredientButton.setBounds(375, 330, 150, 30);
         
         cancelUpdateIngredientButton = new JButton("Cancel");
         
         updateIngredientButton.addActionListener((ActionEvent e) -> {
-            double originalCalories = ingredients.elementAt(modifyIndex).getTotalCalories();
-            Ingredient ingredient = buildIngredient();
-           
-            if (ingredient != null) {
-                totalRecipeCalories += ingredient.getTotalCalories() - originalCalories;
-                recipeCaloriesLabel.setText("Total Calories: " + Math.round(totalRecipeCalories));
-                ingredients.set(modifyIndex, ingredient);
-                clearIngredientFields();
-                updateIngredientButton.setVisible(false);
-                cancelUpdateIngredientButton.setVisible(false);
-                addIngredientButton.setVisible(true);
-                modifyIndex = -1;
-            } 
+            handleUpdateIngredientButtonClick();
         });
         
         add(updateIngredientButton);
@@ -206,18 +190,7 @@ public class UpdateRecipeView extends JFrame {
         removeIngredientButton.setBounds(310, 510, 150, 30);
         
         removeIngredientButton.addActionListener((ActionEvent e) -> {
-            int index = ingredientList.getSelectedIndex();
-            if (index == -1) {
-                JOptionPane.showMessageDialog(this, "No ingredient selected.", "Ingredient Selection Error", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                Object[] options = {"Yes", "No"};
-                int option = JOptionPane.showOptionDialog(this, "This action cannot be undone. Proceed?", "Removal Warning", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
-                if (option == 0) {
-                    totalRecipeCalories -= ingredientList.getSelectedValue().getTotalCalories();
-                    recipeCaloriesLabel.setText("Total Calories: " + Math.round(totalRecipeCalories));
-                    ingredients.remove(index);
-                }
-            }   
+            handleRemoveIngredientButtonClick();
         });
         
         add(removeIngredientButton);
@@ -233,22 +206,7 @@ public class UpdateRecipeView extends JFrame {
         });
         
         modifyIngredientButton.addActionListener((ActionEvent e) -> {
-            modifyIndex = ingredientList.getSelectedIndex();
-            System.out.println(ingredientList.getSelectedIndex());
-            if (modifyIndex == -1) {
-                JOptionPane.showMessageDialog(this, "No ingredient selected.", "Ingredient Selection Error", JOptionPane.INFORMATION_MESSAGE);
-
-            } else {
-                addIngredientButton.setVisible(false);
-                updateIngredientButton.setVisible(true);
-                cancelUpdateIngredientButton.setVisible(true);
-                Ingredient selectedIngredient = ingredientList.getSelectedValue();
-                ingedientNameField.setText(selectedIngredient.getName());
-                amountField.setText("" + selectedIngredient.getAmount());
-                amountComboBox.setSelectedItem(selectedIngredient.getUnitOfMeasurement());
-                caloriesField.setText("" + selectedIngredient.getCaloriesPerMeasurementUnit());
-                caloriesComboBox.setSelectedItem(selectedIngredient.getCalorieMeasurementType());  
-            }
+            handleModifyIngredientButtonClick();
         });
         
         add(cancelUpdateIngredientButton);
@@ -258,18 +216,7 @@ public class UpdateRecipeView extends JFrame {
         saveRecipeButton.setBounds(30, 550, 75, 30);
      
         saveRecipeButton.addActionListener((ActionEvent e) -> {
-            Recipe recipe = buildRecipe();
-            if (recipe != null) {
-                recipeToUpdate.setName(recipe.getName());
-                recipeToUpdate.setServings(recipe.getServings());
-                recipeToUpdate.setIngredients(recipe.getIngredients());
-                if (!recipeCaloriesField.getText().isBlank()) {
-                    recipeToUpdate.setTotalCalories(recipe.getTotalCalories());
-                }
-                callingView.updateRecipeList();
-                callingView.setVisible(true);
-                dispose();
-            }
+            handleSaveButtonClick();
         });
         
         add(saveRecipeButton);     
@@ -395,6 +342,80 @@ public class UpdateRecipeView extends JFrame {
         caloriesComboBox.setSelectedIndex(-1);
     }    
     
+    private void handleSaveButtonClick() {
+        Recipe recipe = buildRecipe();
+        if (recipe != null) {
+            recipeToUpdate.setName(recipe.getName());
+            recipeToUpdate.setServings(recipe.getServings());
+            recipeToUpdate.setIngredients(recipe.getIngredients());
+            if (!recipeCaloriesField.getText().isBlank()) {
+                recipeToUpdate.setTotalCalories(recipe.getTotalCalories());
+            }
+            callingView.updateRecipeList();
+            callingView.setVisible(true);
+            dispose();
+        }
+    }
+    
+    private void handleAddIngredientButton() {
+        Ingredient ingredient = buildIngredient();
+        if (ingredient != null) {
+            totalRecipeCalories += ingredient.getTotalCalories();
+            recipeCaloriesLabel.setText("Total Calories: " + Math.round(totalRecipeCalories));
+            ingredients.addElement(ingredient);
+            clearIngredientFields();
+        } 
+    }
+    
+    private void handleModifyIngredientButtonClick() {
+        modifyIndex = ingredientList.getSelectedIndex();
+            System.out.println(ingredientList.getSelectedIndex());
+            if (modifyIndex == -1) {
+                JOptionPane.showMessageDialog(this, "No ingredient selected.", "Ingredient Selection Error", JOptionPane.INFORMATION_MESSAGE);
+
+            } else {
+                addIngredientButton.setVisible(false);
+                updateIngredientButton.setVisible(true);
+                cancelUpdateIngredientButton.setVisible(true);
+                Ingredient selectedIngredient = ingredientList.getSelectedValue();
+                ingedientNameField.setText(selectedIngredient.getName());
+                amountField.setText("" + selectedIngredient.getAmount());
+                amountComboBox.setSelectedItem(selectedIngredient.getUnitOfMeasurement());
+                caloriesField.setText("" + selectedIngredient.getCaloriesPerMeasurementUnit());
+                caloriesComboBox.setSelectedItem(selectedIngredient.getCalorieMeasurementType());  
+            }
+    }
+    
+    private void handleRemoveIngredientButtonClick() {
+        int index = ingredientList.getSelectedIndex();
+        if (index == -1) {
+            JOptionPane.showMessageDialog(this, "No ingredient selected.", "Ingredient Selection Error", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            Object[] options = {"Yes", "No"};
+            int option = JOptionPane.showOptionDialog(this, "This action cannot be undone. Proceed?", "Removal Warning", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
+            if (option == 0) {
+                totalRecipeCalories -= ingredientList.getSelectedValue().getTotalCalories();
+                recipeCaloriesLabel.setText("Total Calories: " + Math.round(totalRecipeCalories));
+                ingredients.remove(index);
+            }
+        } 
+    }
+    
+    private void handleUpdateIngredientButtonClick() {
+        double originalCalories = ingredients.elementAt(modifyIndex).getTotalCalories();
+        Ingredient ingredient = buildIngredient();
+
+        if (ingredient != null) {
+            totalRecipeCalories += ingredient.getTotalCalories() - originalCalories;
+            recipeCaloriesLabel.setText("Total Calories: " + Math.round(totalRecipeCalories));
+            ingredients.set(modifyIndex, ingredient);
+            clearIngredientFields();
+            updateIngredientButton.setVisible(false);
+            cancelUpdateIngredientButton.setVisible(false);
+            addIngredientButton.setVisible(true);
+            modifyIndex = -1;
+        }
+    }
     
     public class IngredientRenderer extends JLabel implements ListCellRenderer<Ingredient> {
  

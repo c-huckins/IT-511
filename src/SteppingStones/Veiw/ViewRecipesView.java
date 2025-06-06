@@ -25,6 +25,7 @@ public class ViewRecipesView extends JFrame {
         JTextArea recipeArea = new JTextArea();
         recipeArea.setText(recipe.getDiplayString());
         recipeArea.setBounds(30, 30, 520, 510);
+        recipeArea.setEditable(false);
         add(recipeArea);
         
         exitButton = new JButton("Close");
